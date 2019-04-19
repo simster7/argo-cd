@@ -1705,7 +1705,6 @@ func schema_pkg_apis_application_v1alpha1_ResourceAction(ref common.ReferenceCal
 						},
 					},
 				},
-				Required: []string{"name"},
 			},
 		},
 		Dependencies: []string{
@@ -1769,7 +1768,6 @@ func schema_pkg_apis_application_v1alpha1_ResourceActionParam(ref common.Referen
 						},
 					},
 				},
-				Required: []string{"name", "value", "type"},
 			},
 		},
 	}
@@ -1781,7 +1779,7 @@ func schema_pkg_apis_application_v1alpha1_ResourceActions(ref common.ReferenceCa
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"actionDiscovery.lua": {
+					"discovery.lua": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -1800,7 +1798,7 @@ func schema_pkg_apis_application_v1alpha1_ResourceActions(ref common.ReferenceCa
 						},
 					},
 				},
-				Required: []string{"actionDiscovery.lua", "definitions"},
+				Required: []string{"discovery.lua", "definitions"},
 			},
 		},
 		Dependencies: []string{
@@ -2260,6 +2258,20 @@ func schema_pkg_apis_application_v1alpha1_ResourceStatus(ref common.ReferenceCal
 							Format: "",
 						},
 					},
+					"Labels": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -2278,6 +2290,7 @@ func schema_pkg_apis_application_v1alpha1_ResourceStatus(ref common.ReferenceCal
 						},
 					},
 				},
+				Required: []string{"Labels"},
 			},
 		},
 		Dependencies: []string{

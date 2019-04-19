@@ -3273,6 +3273,12 @@
         "kind": {
           "type": "string"
         },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
         "name": {
           "type": "string"
         },

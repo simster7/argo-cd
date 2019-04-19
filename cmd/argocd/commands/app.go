@@ -1240,7 +1240,6 @@ func calculateResourceStates(app *argoappv1.Application, selectedResources []arg
 func getResourceStates(app *argoappv1.Application, selectedResources []argoappv1.SyncOperationResource) map[string]*resourceState {
 	resStates := make(map[string]*resourceState)
 	for _, res := range app.Status.Resources {
-		fmt.Print(res.Labels)
 		if len(selectedResources) > 0 && !argo.ContainsSyncResource(res.Name, res.GroupVersionKind(), selectedResources) {
 			continue
 		}

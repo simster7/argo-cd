@@ -607,6 +607,8 @@ message ResourceStatus {
 
   optional string name = 5;
 
+  map<string, string> labels = 9;
+
   optional string status = 6;
 
   optional HealthStatus health = 7;

@@ -272,7 +272,6 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, revision st
 			Hook:      hookutil.IsHook(obj),
 		}
 
-		fmt.Println("State SIMON", resState, obj.GetLabels())
 
 		diffResult := diffResults.Diffs[i]
 		if resState.Hook {

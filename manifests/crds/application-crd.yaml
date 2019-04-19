@@ -1136,6 +1136,8 @@ spec:
                 description: ResourceStatus holds the current sync and health status
                   of a resource
                 properties:
+                  Labels:
+                    type: object
                   group:
                     type: string
                   health:
@@ -1157,6 +1159,8 @@ spec:
                     type: string
                   version:
                     type: string
+                required:
+                - Labels
                 type: object
               type: array
             sourceType:
