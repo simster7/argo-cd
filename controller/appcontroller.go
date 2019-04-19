@@ -629,6 +629,7 @@ func (ctrl *ApplicationController) processAppRefreshQueueItem() (processNext boo
 		conditions = append(conditions, *syncErrCond)
 	}
 
+	fmt.Println("COMPARE RESULT", compareResult.resources)
 	app.Status.ObservedAt = compareResult.reconciledAt
 	app.Status.ReconciledAt = compareResult.reconciledAt
 	app.Status.Sync = *compareResult.syncStatus

@@ -38,6 +38,7 @@ type managedResource struct {
 	Kind      string
 	Namespace string
 	Name      string
+	Labels    map[string]string
 	Hook      bool
 }
 
@@ -266,9 +267,12 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, revision st
 			Name:      obj.GetName(),
 			Kind:      gvk.Kind,
 			Version:   gvk.Version,
+			Labels:    obj.GetLabels(),
 			Group:     gvk.Group,
 			Hook:      hookutil.IsHook(obj),
 		}
+
+		fmt.Println("State SIMON", resState, obj.GetLabels())
 
 		diffResult := diffResults.Diffs[i]
 		if resState.Hook {
@@ -289,6 +293,7 @@ func (m *appStateManager) CompareAppState(app *v1alpha1.Application, revision st
 			Group:     resState.Group,
 			Kind:      resState.Kind,
 			Version:   resState.Version,
+			Labels:    resState.Labels,
 			Live:      managedLiveObj[i],
 			Target:    targetObjs[i],
 			Diff:      diffResult,

@@ -403,7 +403,6 @@ func (c *clusterInfo) getManagedLiveObjs(a *appv1.Application, targetObjs []*uns
 	if err != nil {
 		return nil, err
 	}
-
 	return managedObjs, nil
 }
 
