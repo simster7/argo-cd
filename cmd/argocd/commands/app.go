@@ -1115,26 +1115,11 @@ func NewApplicationSyncCommand(clientOpts *argocdclient.ClientOptions) *cobra.Co
 				log.Fatal(parseErr)
 			}
 
+			manifests := getManifestFiles(revision, appName, appIf)
+
 			if len(selectedLabels) > 0 {
-				ctx := context.Background()
 
-				if revision == "" {
-					revision = "HEAD"
-				}
-
-				q := application.ApplicationManifestQuery{
-					Name:     &appName,
-					Revision: revision,
-				}
-
-				res, err := appIf.GetManifests(ctx, &q)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				for _, mfst := range res.Manifests {
-					obj, err := argoappv1.UnmarshalToUnstructured(mfst)
-					errors.CheckError(err)
+				for _, obj := range manifests {
 					for key, selectedValue := range selectedLabels {
 						if objectValue, ok := obj.GetLabels()[key]; ok && selectedValue == objectValue {
 							gvk := obj.GroupVersionKind()
@@ -1152,6 +1137,17 @@ func NewApplicationSyncCommand(clientOpts *argocdclient.ClientOptions) *cobra.Co
 			}
 
 			selectedResources := parseSelectedResources(resources)
+
+			for _, resource := range selectedResources {
+				for _, manifest := range manifests {
+					gvk := manifest.GroupVersionKind()
+					if gvk.Group == resource.Group && gvk.Kind == resource.Kind && manifest.GetName() == resource.Name {
+						if manifest.GetNamespace() != "" {
+							log.Fatalf("Cannot sync resources with hard-coded namespaces, %s has hard-coded namespace %s", manifest.GetName(), manifest.GetNamespace())
+						}
+					}
+				}
+			}
 
 			syncReq := application.ApplicationSyncRequest{
 				Name:      &appName,
@@ -1783,6 +1779,35 @@ func NewApplicationPatchCommand(clientOpts *argocdclient.ClientOptions) *cobra.C
 
 	command.Flags().StringVar(&patch, "patch", "", "Patch")
 	return &command
+}
+
+func getManifestFiles(revision string, appName string, appIf application.ApplicationServiceClient) []*unstructured.Unstructured {
+	ctx := context.Background()
+
+	if revision == "" {
+		revision = "HEAD"
+	}
+
+	q := application.ApplicationManifestQuery{
+		Name:     &appName,
+		Revision: revision,
+	}
+
+	res, err := appIf.GetManifests(ctx, &q)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var manifests = make([]*unstructured.Unstructured, 0)
+	for _, manifest := range res.Manifests {
+		obj, err := argoappv1.UnmarshalToUnstructured(manifest)
+		errors.CheckError(err)
+		if obj != nil {
+			manifests = append(manifests, obj)
+		}
+	}
+
+	return manifests
 }
 
 func filterResources(command *cobra.Command, resources []*argoappv1.ResourceDiff, group, kind, namespace, resourceName string, all bool) []*unstructured.Unstructured {
