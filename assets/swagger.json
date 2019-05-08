@@ -695,6 +695,44 @@
         }
       }
     },
+    "/api/v1/applications/{name}/status": {
+      "get": {
+        "tags": [
+          "ApplicationService"
+        ],
+        "summary": "PodLogs returns stream of log entries for the specified pod. Pod",
+        "operationId": "GetStatus",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "refresh",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "name": "project",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "(empty)",
+            "schema": {
+              "$ref": "#/definitions/applicationApplicationStatusResponse"
+            }
+          }
+        }
+      }
+    },
     "/api/v1/applications/{name}/sync": {
       "post": {
         "tags": [
@@ -1472,6 +1510,14 @@
         "prune": {
           "type": "boolean",
           "format": "boolean"
+        }
+      }
+    },
+    "applicationApplicationStatusResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/v1alpha1ApplicationStatus"
         }
       }
     },

@@ -1064,3 +1064,11 @@ func (s *Server) RunResourceAction(ctx context.Context, q *ResourceActionRunRequ
 	}
 	return &ApplicationResponse{}, nil
 }
+
+func (s *Server) GetStatus(ctx context.Context, q *ApplicationQuery) (*ApplicationStatusResponse, error) {
+	appIf, err := s.Get(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	return &ApplicationStatusResponse{Status: appIf.Status}, nil
+}
