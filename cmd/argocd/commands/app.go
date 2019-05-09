@@ -1115,9 +1115,14 @@ func NewApplicationSyncCommand(clientOpts *argocdclient.ClientOptions) *cobra.Co
 				log.Fatal(parseErr)
 			}
 
-			manifests := getManifestFiles(revision, appName, appIf)
 
-			if len(selectedLabels) > 0 {
+			var selectedResources []argoappv1.SyncOperationResource
+			// Download manifests and perform namespace checking only if syncing specific resources (by resource or by label)
+			if len(selectedLabels) > 0 || len(resources) > 0 {
+
+				fmt.Println("Syncing specific resources", resources)
+
+				manifests := getManifestFiles(revision, appName, appIf)
 
 				for _, obj := range manifests {
 					for key, selectedValue := range selectedLabels {
@@ -1134,16 +1139,19 @@ func NewApplicationSyncCommand(clientOpts *argocdclient.ClientOptions) *cobra.Co
 					log.Fatalf("No matching resources found for labels: %v", labels)
 					return
 				}
-			}
 
-			selectedResources := parseSelectedResources(resources)
+				selectedResources = parseSelectedResources(resources)
 
-			for _, resource := range selectedResources {
-				for _, manifest := range manifests {
-					gvk := manifest.GroupVersionKind()
-					if gvk.Group == resource.Group && gvk.Kind == resource.Kind && manifest.GetName() == resource.Name {
-						if manifest.GetNamespace() != "" {
-							log.Fatalf("Cannot sync resources with hard-coded namespaces, %s has hard-coded namespace %s", manifest.GetName(), manifest.GetNamespace())
+				// Ensure that selected resources do not have a hard-wired namespace
+				for _, resource := range selectedResources {
+					for _, manifest := range manifests {
+						gvk := manifest.GroupVersionKind()
+						fmt.Println("Comparing", resource, manifest)
+						if gvk.Group == resource.Group && gvk.Kind == resource.Kind && manifest.GetName() == resource.Name {
+							fmt.Println("Matched checking namespace", manifest.GetNamespace())
+							if manifest.GetNamespace() != "" {
+								log.Fatalf("Cannot sync resources with hard-coded namespaces, %s has hard-coded namespace %s", manifest.GetName(), manifest.GetNamespace())
+							}
 						}
 					}
 				}
