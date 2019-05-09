@@ -589,3 +589,26 @@ func TestPermissions(t *testing.T) {
 	assert.True(t, destinationErrorExist)
 	assert.True(t, sourceErrorExist)
 }
+
+func TestRejectPartialSyncWithNameSpace(t *testing.T) {
+	fixture.EnsureCleanState()
+
+	app := createAndSyncDefault(t)
+
+	//res, _ := fixture.RunCli("app", "set", app.Name, "--dest-namespace", "custom-namespace")
+	//fmt.Println(res)
+
+	res, _ := fixture.RunCli("app", "manifests", app.Name)
+	fmt.Println(res)
+
+	res, _ = fixture.RunCli("app", "get", app.Name)
+	fmt.Println(res)
+
+
+	res, _ = fixture.RunCli("app", "sync", app.Name, "--label",
+		fmt.Sprintf("app.kubernetes.io/instance=test-%s", strings.Split(app.Name, "-")[1]))
+
+	fmt.Println(res)
+
+
+}
