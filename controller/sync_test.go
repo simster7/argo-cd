@@ -552,6 +552,25 @@ func TestSyncFailureHookWithFailedSync(t *testing.T) {
 	assert.Len(t, syncCtx.syncRes.Resources, 2)
 }
 
+func TestSyncFailureHookWithFailedSyncOnDryRunCheck(t *testing.T) {
+	syncCtx := newTestSyncCtx()
+	syncCtx.syncOp.SyncStrategy.Apply = nil
+	pod := test.NewPod()
+	syncCtx.compareResult = &comparisonResult{
+		managedResources: []managedResource{{Target: pod}},
+		hooks:            []*unstructured.Unstructured{test.NewHook(HookTypeSyncFail)},
+	}
+	syncCtx.kubectl = &kubetest.MockKubectlCmd{
+		Commands: map[string]kubetest.KubectlOutput{pod.GetName(): {Err: fmt.Errorf("")}},
+	}
+
+	syncCtx.sync()
+	syncCtx.sync()
+
+	assert.Equal(t, OperationFailed, syncCtx.opState.Phase)
+	assert.Len(t, syncCtx.syncRes.Resources, 2)
+}
+
 func TestRunSyncFailHooksFailed(t *testing.T) {
 	// Tests that other SyncFail Hooks run even if one of them fail.
 

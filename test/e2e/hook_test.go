@@ -146,6 +146,52 @@ spec:
 		Expect(OperationPhaseIs(OperationFailed))
 }
 
+
+func TestSyncFailHookPodFailureOnDryRun(t *testing.T) {
+	// Tests that a SyncFail hook will successfully run upon a pod failure (which leads to a sync failure)
+	Given(t).
+		Path("hook").
+		When().
+		AddFile("sync-fail-hook.yaml", `
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    argocd.argoproj.io/hook: SyncFail
+  name: sync-fail-hook
+spec:
+  containers:
+    - command:
+        - "true"
+      image: "alpine:latest"
+      imagePullPolicy: IfNotPresent
+      name: main
+  restartPolicy: Never
+`).
+		AddFile("malformed-pod.yaml", `
+apiVersion: v1
+kind: Pod
+metadata:
+  name: malformed-pod
+spec:
+  c0nt4iner$:
+    - name: main
+      image: alpine:latest
+      imagePullPolicy: IfNotPresent
+      command:
+        - "true"
+  restartPolicy: Never
+
+`).
+		PatchFile("hook.yaml", `[{"op": "replace", "path": "/metadata/annotations", "value": {"argocd.argoproj.io/hook": "PostSync"}}]`).
+		PatchFile("hook.yaml", `[{"op": "replace", "path": "/spec/containers/0/command/0", "value": "false"}]`).
+		Create().
+		Sync().
+		Then().
+		Expect(ResourceResultIs(ResourceResult{Version: "v1", Kind: "Pod", Namespace: DeploymentNamespace(), Name: "sync-fail-hook", Message: "pod/sync-fail-hook created", HookType: HookTypeSyncFail, HookPhase: OperationSucceeded, SyncPhase: SyncPhaseSyncFail})).
+		Expect(OperationPhaseIs(OperationFailed))
+}
+
 func TestSyncFailHookPodFailureSyncFailFailure(t *testing.T) {
 	// Tests that a failing SyncFail hook will successfully be marked as failed
 	Given(t).

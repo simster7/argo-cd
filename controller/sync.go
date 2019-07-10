@@ -195,6 +195,7 @@ func (sc *syncContext) sync() {
 	}
 
 	sc.log.WithFields(log.Fields{"tasks": tasks, "isSelectiveSync": sc.isSelectiveSync()}).Info("tasks")
+	fmt.Println("SIMON Starting")
 
 	// Perform a `kubectl apply --dry-run` against all the manifests. This will detect most (but
 	// not all) validation issues with the user's manifests (e.g. will detect syntax issues, but
@@ -205,7 +206,10 @@ func (sc *syncContext) sync() {
 	if !sc.started() {
 		sc.log.Debug("dry-run")
 		if !sc.runTasks(tasks, true) {
-			sc.setOperationPhase(v1alpha1.OperationFailed, "one or more objects failed to apply (dry run)")
+			fmt.Println("SIMON FAILED ON DRY RUN")
+			//sc.setOperationPhase(v1alpha1.OperationFailed, "one or more objects failed to apply (dry run)")
+			syncFailTasks := tasks.Filter(func(t *syncTask) bool { return t.phase == v1alpha1.SyncPhaseSyncFail })
+			sc.setOperationFailed(syncFailTasks, "one or more objects failed to apply (dry run)")
 			return
 		}
 	}
@@ -218,6 +222,8 @@ func (sc *syncContext) sync() {
 		if task.isHook() {
 			// update the hook's result
 			operationState, message := getOperationPhase(task.liveObj)
+			log.WithFields(log.Fields{"task": task, "operationState": operationState}).Debug("attempting to update state of running hook")
+
 			sc.setResourceResult(task, "", operationState, message)
 
 			// maybe delete the hook
@@ -299,6 +305,13 @@ func (sc *syncContext) sync() {
 
 func (sc *syncContext) setOperationFailed(syncFailTasks syncTasks, message string) {
 	if len(syncFailTasks) > 0 {
+		//// if any syncFailTasks are still running, wait for them to finish. This is sometimes redundant since running
+		//// tasks are also checked for in `sync()`; however, if a sync fails during a dry run check, the relevant check
+		//// is unreachable
+		//if syncFailTasks.Any(func(t *syncTask) bool { return t.running() }) {
+		//	sc.setOperationPhase(v1alpha1.OperationRunning, "one or more tasks are running")
+		//	return
+		//}
 		// if all the failure hooks are completed, don't run them again, and mark the sync as failed
 		if syncFailTasks.All(func(task *syncTask) bool { return task.completed() }) {
 			sc.setOperationPhase(v1alpha1.OperationFailed, message)

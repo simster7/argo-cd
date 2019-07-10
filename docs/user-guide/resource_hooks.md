@@ -41,6 +41,7 @@ The following hooks are defined:
 | `Sync`  | Executes after all `PreSync` hooks completed and were successful. Occurs in conjuction with the apply of the manifests. |
 | `Skip` | Indicates to Argo CD to skip the apply of the manifest. This is typically used in conjunction with a `Sync` hook which is presumably handling the deployment in an alternate way (e.g. blue-green deployment) |
 | `PostSync` | Executes after all `Sync` hooks completed and were successful, a succcessful apply, and all resources in a `Healthy` state. |
+| `SyncFail` | Executes after all `Sync` hooks completed and were successful, a succcessful apply, and all resources in a `Healthy` state. |
 
 
 ## Selective Sync
